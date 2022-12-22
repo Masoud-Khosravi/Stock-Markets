@@ -15,12 +15,10 @@ class MetaTrader:
     time_frame = ""
     df_raw = None
     df_type1_raw = None
-    df_type1_final = None
+    df_type1_changed = None
+    df_last_candle_raw = None
     df_last_candle_type1 = None
-    sl_sell = 0.0
-    tp_sell = 0.0
-    sl_buy = 0.0
-    tp_buy = 0.0
+    df_last_candle_type1_changed = None
     _scaler = None
     _start_pos = 1
     _count = 2818
@@ -60,8 +58,8 @@ class MetaTrader:
         try:
             self.df_raw = self._get_raw_data(self._start_pos, self._count)
             self.df_type1_raw = self._get_data_type1(self.df_raw)
-            self.df_type1_final = self._get_data_type1_changed(self.df_type1_raw)
-            self.df_last_candle_type1 = self._get_data_type1_changed_last_candle()
+            self.df_type1_changed = self._get_data_type1_changed(self.df_type1_raw)
+            self.df_last_candle_type1_changed = self._get_data_type1_changed_last_candle()
             return True
         except Exception as err:
             print("ERR :", err)
@@ -70,7 +68,7 @@ class MetaTrader:
     # @property
     def update_last(self) -> bool:
         try:
-            self.df_last_candle_type1 = self._get_data_type1_changed_last_candle()
+            self.df_last_candle_type1_changed = self._get_data_type1_changed_last_candle()
             return True
         except Exception as err:
             print(err)
@@ -85,7 +83,8 @@ class MetaTrader:
         df = df.drop(['spread', 'real_volume'], axis=1)
         return df
 
-    def _get_data_type1(self, dataframe_raw, is_last=False):
+    @staticmethod
+    def _get_data_type1(dataframe_raw):
         df = dataframe_raw.copy()
         df.insert(len(df.columns), 'High9', np.nan)
         df.insert(len(df.columns), 'High26', np.nan)
@@ -101,57 +100,19 @@ class MetaTrader:
             df.loc[row, 'Low26'] = np.amin(df.loc[row - 25:row, 'low'])
             df.loc[row, 'Low52'] = np.amin(df.loc[row - 51:row, 'low'])
             # ========== End For
-        df['time'] = df['time'].apply(lambda num: num.hour)
         df = df.dropna()
         df = df.reset_index(drop=True)
-        if not is_last:
-            ###################
-            point = self.Mt5.symbol_info(self.symbol).point
-
-            def dest(num1, num2):
-                return (num1 - num2) / point
-
-            ###################
-            df.insert(len(df.columns), 'BS', np.nan)
-            for pos in np.arange(0, len(df)):
-                close_price = df.loc[pos, 'close']
-                sl_buy = dest(close_price, df.loc[pos, 'Low26'])
-                if sl_buy < 75:
-                    sl_buy = 75
-                sl_sell = dest(df.loc[pos, 'High26'], close_price)
-                if sl_sell < 75:
-                    sl_sell = 75
-                tp_buy = sl_buy * 2.1
-                tp_sell = sl_sell * 2.1
-                signal = 0
-                if (df.loc[pos, 'time'] < 23) and (df.loc[pos, 'time'] > 4):
-                    for last in np.arange(1, 25):
-                        if (pos + last) < len(df):
-                            high_last = dest(df.loc[pos + last, 'High26'], close_price)
-                            low_last = dest(close_price, df.loc[pos + last, 'Low26'])
-                            low_now = dest(close_price, df.loc[pos + last, 'low'])
-                            high_now = dest(df.loc[pos + last, 'high'], close_price)
-                            if (low_last <= sl_buy) and (high_now > tp_buy):
-                                signal = 1
-                                break
-                            elif (high_last <= sl_sell) and (low_now > tp_sell):
-                                signal = 2
-                                break
-                df.loc[pos, 'BS'] = signal
-            # End of for pos in np.arrange(0,len(df)):
-            df = df.iloc[:-26, :]
-        # End of  if(not isLast):
         return df
 
-    def _get_data_type1_changed(self, dataframe_type1):
-        df = dataframe_type1.drop('BS', axis=1)
+    def _get_data_type1_changed(self, dataframe_type1_raw):
+        df = dataframe_type1_raw.copy()
         ##########
         point = self.Mt5.symbol_info(self.symbol).point
 
         def dest(num1, num2):
             return (num1 - num2) / point
 
-        #########
+        # Calculate All Distance From Close by point
         df['open'] = np.vectorize(dest)(df['close'], df['open'])
         df['high'] = np.vectorize(dest)(df['close'], df['high'])
         df['low'] = np.vectorize(dest)(df['close'], df['low'])
@@ -161,19 +122,25 @@ class MetaTrader:
         df['High9'] = np.vectorize(dest)(df['close'], df['High9'])
         df['High26'] = np.vectorize(dest)(df['close'], df['High26'])
         df['High52'] = np.vectorize(dest)(df['close'], df['High52'])
-        ######
+
+        # We Use only Time (not date) and convert every candle time to minute of day -->  Hour*60 +minute
+        df['time'] = df['time'].apply(lambda num: num.hour * 60 + num.minute)
+
+        # Close Distance from Close is equal 0 -->
         df = df.drop(['close'], axis=1)
+
+        # Scaling All Dataframe
         scaler = StandardScaler()
         df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
-        # print(df.head())
-        df['BS'] = dataframe_type1['BS']
         self._scaler = scaler
         return df
 
     def _get_data_type1_changed_last_candle(self):
         df_raw = self._get_raw_data(1, 53)
-        df = self._get_data_type1(df_raw, is_last=True)
-        # print(df.head())
+        self.df_last_candle_raw = df_raw[-1:]
+
+        df = self._get_data_type1(df_raw)
+        self.df_last_candle_type1 = df.copy()
         ##########
         point = self.Mt5.symbol_info(self.symbol).point
 
@@ -181,11 +148,6 @@ class MetaTrader:
             return (num1 - num2) / point
 
         #########
-        price = df['close'][0]
-        self.sl_buy = df['Low26'][0]
-        self.sl_sell = df['High26'][0]
-        self.tp_buy = price + (price - self.sl_buy) * 2
-        self.tp_sell = price - (self.sl_sell - price) * 2
         df['open'] = np.vectorize(dest)(df['close'], df['open'])
         df['high'] = np.vectorize(dest)(df['close'], df['high'])
         df['low'] = np.vectorize(dest)(df['close'], df['low'])
@@ -195,14 +157,19 @@ class MetaTrader:
         df['High9'] = np.vectorize(dest)(df['close'], df['High9'])
         df['High26'] = np.vectorize(dest)(df['close'], df['High26'])
         df['High52'] = np.vectorize(dest)(df['close'], df['High52'])
-        # =============
+
+        # We Use only Time (not date) and convert every candle time to minute of day -->  Hour*60 +minute
+        df['time'] = df['time'].apply(lambda num: num.hour * 60 + num.minute)
+
+        # Close Distance from Close is equal 0 -->
         df = df.drop(['close'], axis=1)
+
+        # Use Scaler Before Created in class
         scaler = self._scaler
         df = pd.DataFrame(scaler.transform(df), columns=df.columns)
         return df
 
     ####################################################################################################################
-    # @staticmethod
     def _str_to_timeframe(self, argument="M1"):
         switcher = {
             "M1": self.Mt5.TIMEFRAME_M1,
@@ -229,18 +196,4 @@ class MetaTrader:
         }
         return switcher.get(argument, False)
 
-####################################################################################################################
-
-# my_class = ReadDataMetatrader("XAUUSD", "M1")
-# if my_class:
-#     print("Everything is fine.")
-# else:
-#     print("Entered Symbol <{}> is {}".format(my_class.symbol, my_class._symbol_exist))
-#     print("and Entered Timeframe is {}".format(my_class.time_frame))
-#
-# my_class.update
-# df = my_class.df_type1_final
-# print(df.head())
-# print("=======================")
-# last = my_class.df_last_candle_type1
-# print(last.head())
+# End Of Class MetaTrader
