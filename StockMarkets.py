@@ -10,6 +10,7 @@ class MetaTrader:
         print("initialize() failed")
         Mt5.shutdown()
 
+    Mt5 = Mt5
     symbol = None
     time_frame = ""
     df_raw = None
@@ -33,6 +34,7 @@ class MetaTrader:
                    "H1","H2","H3","H4","H6","H8","H12"
                    "D" , "W" , "MN"
         """
+
         self._start_pos = start_pos
         self._count = count
         self.time_frame = self._str_to_timeframe(timeframe)
@@ -46,7 +48,7 @@ class MetaTrader:
 
     def _is_symbol_exist(self):
         find = False
-        symbols = Mt5.symbols_get()
+        symbols = self.Mt5.symbols_get()
         for item in symbols:
             if item.name == self.symbol:
                 find = True
@@ -75,8 +77,8 @@ class MetaTrader:
             return False
 
     def _get_raw_data(self, start_pos, count):
-        df = Mt5.copy_rates_from_pos(self.symbol, self.time_frame, start_pos,
-                                     count)  # 2 Days=2818 -- 2740+52+26 ->3D=4188  in Alpari in others 1 day=1380
+        df = self.Mt5.copy_rates_from_pos(self.symbol, self.time_frame, start_pos,
+                                          count)  # 2 Days=2818 -- 2740+52+26 ->3D=4188  in Alpari in others 1 day=1380
         df = pd.DataFrame(df)
         # convert time in seconds into the datetime format
         df['time'] = pd.to_datetime(df['time'], unit='s')
@@ -104,7 +106,7 @@ class MetaTrader:
         df = df.reset_index(drop=True)
         if not is_last:
             ###################
-            point = Mt5.symbol_info(self.symbol).point
+            point = self.Mt5.symbol_info(self.symbol).point
 
             def dest(num1, num2):
                 return (num1 - num2) / point
@@ -144,7 +146,7 @@ class MetaTrader:
     def _get_data_type1_changed(self, dataframe_type1):
         df = dataframe_type1.drop('BS', axis=1)
         ##########
-        point = Mt5.symbol_info(self.symbol).point
+        point = self.Mt5.symbol_info(self.symbol).point
 
         def dest(num1, num2):
             return (num1 - num2) / point
@@ -173,7 +175,7 @@ class MetaTrader:
         df = self._get_data_type1(df_raw, is_last=True)
         # print(df.head())
         ##########
-        point = Mt5.symbol_info(self.symbol).point
+        point = self.Mt5.symbol_info(self.symbol).point
 
         def dest(num1, num2):
             return (num1 - num2) / point
@@ -203,27 +205,27 @@ class MetaTrader:
     # @staticmethod
     def _str_to_timeframe(self, argument="M1"):
         switcher = {
-            "M1": Mt5.TIMEFRAME_M1,
-            "M2": Mt5.TIMEFRAME_M2,
-            "M3": Mt5.TIMEFRAME_M3,
-            "M4": Mt5.TIMEFRAME_M4,
-            "M5": Mt5.TIMEFRAME_M5,
-            "M6": Mt5.TIMEFRAME_M6,
-            "M10": Mt5.TIMEFRAME_M10,
-            "M12": Mt5.TIMEFRAME_M12,
-            "M15": Mt5.TIMEFRAME_M15,
-            "M20": Mt5.TIMEFRAME_M20,
-            "M30": Mt5.TIMEFRAME_M30,
-            "H1": Mt5.TIMEFRAME_H1,
-            "H2": Mt5.TIMEFRAME_H2,
-            "H3": Mt5.TIMEFRAME_H3,
-            "H4": Mt5.TIMEFRAME_H4,
-            "H6": Mt5.TIMEFRAME_H6,
-            "H8": Mt5.TIMEFRAME_H8,
-            "H12": Mt5.TIMEFRAME_H12,
-            "D": Mt5.TIMEFRAME_D1,
-            "W": Mt5.TIMEFRAME_W1,
-            "MN": Mt5.TIMEFRAME_MN1,
+            "M1": self.Mt5.TIMEFRAME_M1,
+            "M2": self.Mt5.TIMEFRAME_M2,
+            "M3": self.Mt5.TIMEFRAME_M3,
+            "M4": self.Mt5.TIMEFRAME_M4,
+            "M5": self.Mt5.TIMEFRAME_M5,
+            "M6": self.Mt5.TIMEFRAME_M6,
+            "M10": self.Mt5.TIMEFRAME_M10,
+            "M12": self.Mt5.TIMEFRAME_M12,
+            "M15": self.Mt5.TIMEFRAME_M15,
+            "M20": self.Mt5.TIMEFRAME_M20,
+            "M30": self.Mt5.TIMEFRAME_M30,
+            "H1": self.Mt5.TIMEFRAME_H1,
+            "H2": self.Mt5.TIMEFRAME_H2,
+            "H3": self.Mt5.TIMEFRAME_H3,
+            "H4": self.Mt5.TIMEFRAME_H4,
+            "H6": self.Mt5.TIMEFRAME_H6,
+            "H8": self.Mt5.TIMEFRAME_H8,
+            "H12": self.Mt5.TIMEFRAME_H12,
+            "D": self.Mt5.TIMEFRAME_D1,
+            "W": self.Mt5.TIMEFRAME_W1,
+            "MN": self.Mt5.TIMEFRAME_MN1,
         }
         return switcher.get(argument, False)
 
