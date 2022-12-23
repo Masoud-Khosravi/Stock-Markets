@@ -263,11 +263,3 @@ class TradeOnMeta:
             if order_type == self._Mt5.ORDER_TYPE_SELL:
                 all_sells += 1
         return all_sells
-
-# AA = ReqClass()
-# if AA:
-#     print("Everything fine")
-# elif not AA.Enter:
-#     print("Connection Lost")
-# else:
-#     print("You are not allowed to trade\n->Please make sure <algo trading> is enabled")
