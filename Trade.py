@@ -118,8 +118,9 @@ class TradeOnMeta:
             print("ERROR: Somthing Wrong, request:\n", self._request)
             return False
         elif result.retcode == self._Mt5.TRADE_RETCODE_DONE:
-            print("Close order done.\nTicket={}, volume={}, price={}".format(result.order, result.volume,
-                                                                             result.request.price))
+            print("Done.\nTicket={}, volume={}, price={}, symbol={}".format(result.order, result.volume,
+                                                                            result.request.price,
+                                                                            result.request.symbol))
             return True
         else:
             print("ERR : ", result)
