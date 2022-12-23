@@ -15,7 +15,7 @@ Example (ReadData):
 ```python
 from ReadData import MetaTrader
 my_obj = MetaTrader("XAUUSD", "M1",start_pos=1, count=500)
-# Get Last 500 candels data From timeframe M1 and symbol 'XAUUSD'
+# Get Last 500 candles data From timeframe M1 and symbol 'XAUUSD'
 df=my_obj.df_raw # This is a Pandas Dataframe
 df.head()
 ```
