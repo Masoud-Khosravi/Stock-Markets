@@ -12,7 +12,7 @@ class TradeOnMeta:
     deviation = 20
     magic = int(12345)
     comment = str("Python Trade")
-    _Mt5 = Mt5
+    _mt5 = Mt5
     _action = Mt5.TRADE_ACTION_DEAL
     _type_time = Mt5.ORDER_TIME_GTC
     _type_filling = Mt5.ORDER_FILLING_FOK
@@ -22,10 +22,10 @@ class TradeOnMeta:
 
     def __init__(self):
         self.AllowTrade = False
-        self.Enter = self._Mt5.initialize()
+        self.Enter = self._mt5.initialize()
         if not self.Enter:
             print("initialize() failed")
-            self._Mt5.shutdown()
+            self._mt5.shutdown()
         else:
             self.terminal_info()
 
@@ -34,7 +34,7 @@ class TradeOnMeta:
 
     def terminal_info(self) -> dict:
         if self.Enter:
-            res = self._Mt5.terminal_info()
+            res = self._mt5.terminal_info()
             if res is not None and res != ():
                 terminal_info_dict = res._asdict()
                 self.AllowTrade = terminal_info_dict['trade_allowed']
@@ -92,18 +92,18 @@ class TradeOnMeta:
 
     def is_symbol_exist(self):
         find = False
-        symbols = self._Mt5.symbols_get()
+        symbols = self._mt5.symbols_get()
         for item in symbols:
             if item.name == self.symbol:
                 find = True
                 break
         return find
 
-    def positions_get(self) -> pd.DataFrame():
+    def _positions_get(self) -> pd.DataFrame():
         if self.symbol is None:
-            res = self._Mt5.positions_get()
+            res = self._mt5.positions_get()
         else:
-            res = self._Mt5.positions_get(symbol=self.symbol)
+            res = self._mt5.positions_get(symbol=self.symbol)
 
         if res is not None and res != ():
             df = pd.DataFrame(list(res), columns=res[0]._asdict().keys())
@@ -113,11 +113,11 @@ class TradeOnMeta:
         return pd.DataFrame()  # This Line returns an empty data
 
     def _send_order_request(self) -> bool:
-        result = self._Mt5.order_send(self._request)
+        result = self._mt5.order_send(self._request)
         if result is None:
             print("ERROR: Somthing Wrong, request:\n", self._request)
             return False
-        elif result.retcode == self._Mt5.TRADE_RETCODE_DONE:
+        elif result.retcode == self._mt5.TRADE_RETCODE_DONE:
             print("Done.\nTicket={}, volume={}, price={}, symbol={}".format(result.order, result.volume,
                                                                             result.request.price,
                                                                             result.request.symbol))
@@ -135,15 +135,15 @@ class TradeOnMeta:
         self.comment = "Python Send Order"
         self.symbol = symbol
         is_exist = self.is_symbol_exist()
-        self._action = self._Mt5.TRADE_ACTION_DEAL
+        self._action = self._mt5.TRADE_ACTION_DEAL
         self.volume = float(lot)
         if is_exist:
             if order_type.lower() == 'buy':
-                price = self._Mt5.symbol_info_tick(symbol).ask
-                order_type = self._Mt5.ORDER_TYPE_BUY
+                price = self._mt5.symbol_info_tick(symbol).ask
+                order_type = self._mt5.ORDER_TYPE_BUY
             elif order_type.lower() == 'sell':
-                price = self._Mt5.symbol_info_tick(symbol).bid
-                order_type = self._Mt5.ORDER_TYPE_SELL
+                price = self._mt5.symbol_info_tick(symbol).bid
+                order_type = self._mt5.ORDER_TYPE_SELL
             else:
                 raise TypeError("The order_type Should be 'Buy' or 'Sell")
         else:
@@ -155,14 +155,14 @@ class TradeOnMeta:
         self.deviation = deviation
         self.magic = int(magic)
         self.comment = str(comment)
-        self._type_time = self._Mt5.ORDER_TIME_GTC
-        self._type_filling = self._Mt5.ORDER_FILLING_FOK
+        self._type_time = self._mt5.ORDER_TIME_GTC
+        self._type_filling = self._mt5.ORDER_FILLING_FOK
         self._request = dict(self)
         # send a trading request
         return self._send_order_request()
 
     def close_position(self, deal_id) -> bool:
-        open_position = self.positions_get()
+        open_position = self._positions_get()
         open_position = open_position[open_position['ticket'] == deal_id].reset_index(drop=True)
         if len(open_position) == 0:
             print("ERR : Position By Ticket {} Not Found".format(deal_id))
@@ -170,12 +170,12 @@ class TradeOnMeta:
         self.order_type = open_position["type"][0]
         self.symbol = open_position['symbol'][0]
         self.volume = open_position['volume'][0]
-        if self.order_type == self._Mt5.ORDER_TYPE_BUY:
-            self.order_type = self._Mt5.ORDER_TYPE_SELL
-            self.price = self._Mt5.symbol_info_tick(self.symbol).bid
+        if self.order_type == self._mt5.ORDER_TYPE_BUY:
+            self.order_type = self._mt5.ORDER_TYPE_SELL
+            self.price = self._mt5.symbol_info_tick(self.symbol).bid
         else:
-            self.order_type = self._Mt5.ORDER_TYPE_BUY
-            self.price = self._Mt5.symbol_info_tick(self.symbol).ask
+            self.order_type = self._mt5.ORDER_TYPE_BUY
+            self.price = self._mt5.symbol_info_tick(self.symbol).ask
         self.comment = "Close by Python"
         self._is_close = True
         self._pos_id = deal_id
@@ -184,16 +184,16 @@ class TradeOnMeta:
 
     def close_sells(self, symbol=None) -> bool:
         self.symbol = symbol
-        open_positions = self.positions_get()
+        open_positions = self._positions_get()
         err = False
         for pos in range(0, len(open_positions)):
-            if open_positions["type"][pos] != self._Mt5.ORDER_TYPE_SELL:
+            if open_positions["type"][pos] != self._mt5.ORDER_TYPE_SELL:
                 continue
             self._pos_id = open_positions["ticket"][pos]
             self.symbol = open_positions['symbol'][pos]
             self.volume = open_positions['volume'][pos]
-            self.order_type = self._Mt5.ORDER_TYPE_BUY
-            self.price = self._Mt5.symbol_info_tick(self.symbol).ask
+            self.order_type = self._mt5.ORDER_TYPE_BUY
+            self.price = self._mt5.symbol_info_tick(self.symbol).ask
             self.comment = "Close All Sells"
             self._is_close = True
             self._request = dict(self)
@@ -204,16 +204,16 @@ class TradeOnMeta:
 
     def close_buys(self, symbol=None) -> bool:
         self.symbol = symbol
-        open_positions = self.positions_get()
+        open_positions = self._positions_get()
         err = False
         for pos in range(0, len(open_positions)):
-            if open_positions["type"][pos] != self._Mt5.ORDER_TYPE_BUY:
+            if open_positions["type"][pos] != self._mt5.ORDER_TYPE_BUY:
                 continue
             self._pos_id = open_positions["ticket"][pos]
             self.symbol = open_positions['symbol'][pos]
             self.volume = open_positions['volume'][pos]
-            self.order_type = self._Mt5.ORDER_TYPE_SELL
-            self.price = self._Mt5.symbol_info_tick(self.symbol).bid
+            self.order_type = self._mt5.ORDER_TYPE_SELL
+            self.price = self._mt5.symbol_info_tick(self.symbol).bid
             self.comment = "Close All Buys"
             self._is_close = True
             self._request = dict(self)
@@ -224,19 +224,19 @@ class TradeOnMeta:
 
     def close_all(self, symbol=None) -> bool:
         self.symbol = symbol
-        open_positions = self.positions_get()
+        open_positions = self._positions_get()
         err = False
         for pos in range(0, len(open_positions)):
             self._pos_id = open_positions["ticket"][pos]
             self.symbol = open_positions['symbol'][pos]
             self.volume = open_positions['volume'][pos]
             self.order_type = open_positions["type"][pos]
-            if self.order_type == self._Mt5.ORDER_TYPE_BUY:
-                self.order_type = self._Mt5.ORDER_TYPE_SELL
-                self.price = self._Mt5.symbol_info_tick(self.symbol).bid
+            if self.order_type == self._mt5.ORDER_TYPE_BUY:
+                self.order_type = self._mt5.ORDER_TYPE_SELL
+                self.price = self._mt5.symbol_info_tick(self.symbol).bid
             else:
-                self.order_type = self._Mt5.ORDER_TYPE_BUY
-                self.price = self._Mt5.symbol_info_tick(self.symbol).ask
+                self.order_type = self._mt5.ORDER_TYPE_BUY
+                self.price = self._mt5.symbol_info_tick(self.symbol).ask
             self.comment = "Close all orders"
             self._is_close = True
             self._request = dict(self)
@@ -245,22 +245,55 @@ class TradeOnMeta:
                 err = True
         return not err
 
-    def positions_total_buy(self, symbol=None):
-        self.symbol = symbol
-        open_positions = self.positions_get()
-        all_buys = 0
-        for pos in range(0, len(open_positions)):
-            order_type = open_positions["type"][pos]
-            if order_type == self._Mt5.ORDER_TYPE_BUY:
-                all_buys += 1
-        return all_buys
+    def positions_total(self, group=None):
+        if group is None:
+            group = "*"
+        else:
+            group = "*" + group + "*"
+        positions = self._mt5.positions_get(group=group)
+        if positions is None:
+            print("No positions with group=\"*{}*\", error code={}".format(group, self._mt5.last_error()))
+            return pd.DataFrame()
+        elif len(positions) > 0:
+            # Create these positions as a table using pandas.DataFrame
+            df = pd.DataFrame(list(positions), columns=positions[0]._asdict().keys())
+            df['time'] = pd.to_datetime(df['time'], unit='s')
+            df['type'] = df['type'].apply(lambda num: 'Buy' if int(num) == self._mt5.ORDER_TYPE_BUY else 'Sell')
+            df.drop(['time_update', 'time_msc', 'time_update_msc', 'external_id'], axis=1, inplace=True)
+            return df
 
-    def positions_total_sell(self, symbol=None):
-        self.symbol = symbol
-        open_positions = self.positions_get()
-        all_sells = 0
-        for pos in range(0, len(open_positions)):
-            order_type = open_positions["type"][pos]
-            if order_type == self._Mt5.ORDER_TYPE_SELL:
-                all_sells += 1
-        return all_sells
+    def positions_total_buy(self, group=None):
+        if group is None:
+            group = "*"
+        else:
+            group = "*" + group + "*"
+        positions = self._mt5.positions_get(group=group)
+        if positions is None:
+            print("No positions with group=\"*{}*\", error code={}".format(group, self._mt5.last_error()))
+            return pd.DataFrame()
+        elif len(positions) > 0:
+            # Create these positions as a table using pandas.DataFrame
+            df = pd.DataFrame(list(positions), columns=positions[0]._asdict().keys())
+            df['type'] = df['type'].apply(lambda num: 'Buy' if int(num) == self._mt5.ORDER_TYPE_BUY else 'Sell')
+            df.drop(df[df.type == 'Sell'].index, inplace=True)
+            df['time'] = pd.to_datetime(df['time'], unit='s')
+            df.drop(['time_update', 'time_msc', 'time_update_msc', 'external_id'], axis=1, inplace=True)
+            return df
+
+    def positions_total_sell(self, group=None):
+        if group is None:
+            group = "*"
+        else:
+            group = "*" + group + "*"
+        positions = self._mt5.positions_get(group=group)
+        if positions is None:
+            print("No positions with group=\"*{}*\", error code={}".format(group, self._mt5.last_error()))
+            return pd.DataFrame()
+        elif len(positions) > 0:
+            # Create these positions as a table using pandas.DataFrame
+            df = pd.DataFrame(list(positions), columns=positions[0]._asdict().keys())
+            df['type'] = df['type'].apply(lambda num: 'Buy' if int(num) == self._mt5.ORDER_TYPE_BUY else 'Sell')
+            df.drop(df[df.type == 'Buy'].index, inplace=True)
+            df['time'] = pd.to_datetime(df['time'], unit='s')
+            df.drop(['time_update', 'time_msc', 'time_update_msc', 'external_id'], axis=1, inplace=True)
+            return df
