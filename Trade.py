@@ -162,6 +162,12 @@ class TradeOnMeta:
         return self._send_order_request()
 
     def close_position(self, deal_id) -> bool:
+        """
+        Enter a deal id : Integer
+        ex:
+        12345678
+        ...
+        """
         open_position = self._positions_get()
         open_position = open_position[open_position['ticket'] == deal_id].reset_index(drop=True)
         if len(open_position) == 0:
@@ -183,6 +189,13 @@ class TradeOnMeta:
         return self._send_order_request()
 
     def close_sells(self, symbol=None) -> bool:
+        """
+        Enter a string group
+        ex:
+        'XAUUSD'
+        'USD'
+        ...
+        """
         self.symbol = symbol
         open_positions = self._positions_get()
         err = False
@@ -203,6 +216,13 @@ class TradeOnMeta:
         return not err
 
     def close_buys(self, symbol=None) -> bool:
+        """
+        Enter a string group
+        ex:
+        'XAUUSD'
+        'USD'
+        ...
+        """
         self.symbol = symbol
         open_positions = self._positions_get()
         err = False
@@ -223,6 +243,13 @@ class TradeOnMeta:
         return not err
 
     def close_all(self, symbol=None) -> bool:
+        """
+        Enter a string group
+        ex:
+        'XAUUSD'
+        'USD'
+        ...
+        """
         self.symbol = symbol
         open_positions = self._positions_get()
         err = False
@@ -246,6 +273,13 @@ class TradeOnMeta:
         return not err
 
     def positions_total(self, group=None):
+        """
+        Enter a string group
+        ex:
+        'XAUUSD'
+        'USD'
+        ...
+        """
         if group is None:
             group = "*"
         else:
@@ -263,6 +297,13 @@ class TradeOnMeta:
             return df
 
     def positions_total_buy(self, group=None):
+        """
+        Enter a string group
+        ex:
+        'XAUUSD'
+        'USD'
+        ...
+        """
         if group is None:
             group = "*"
         else:
@@ -281,6 +322,13 @@ class TradeOnMeta:
             return df
 
     def positions_total_sell(self, group=None):
+        """
+        Enter a string group
+        ex:
+        'XAUUSD'
+        'USD'
+        ...
+        """
         if group is None:
             group = "*"
         else:
