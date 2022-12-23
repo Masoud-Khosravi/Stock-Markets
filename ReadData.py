@@ -9,8 +9,6 @@ class MetaTrader:
     if not Mt5.initialize():
         print("initialize() failed")
         Mt5.shutdown()
-
-    Mt5 = Mt5
     symbol = None
     time_frame = ""
     df_raw = None
@@ -19,6 +17,7 @@ class MetaTrader:
     df_last_candle_raw = None
     df_last_candle_type1 = None
     df_last_candle_type1_changed = None
+    _Mt5 = Mt5
     _scaler = None
     _start_pos = 1
     _count = 2818
@@ -46,7 +45,7 @@ class MetaTrader:
 
     def _is_symbol_exist(self):
         find = False
-        symbols = self.Mt5.symbols_get()
+        symbols = self._Mt5.symbols_get()
         for item in symbols:
             if item.name == self.symbol:
                 find = True
@@ -75,8 +74,8 @@ class MetaTrader:
             return False
 
     def _get_raw_data(self, start_pos, count):
-        df = self.Mt5.copy_rates_from_pos(self.symbol, self.time_frame, start_pos,
-                                          count)  # 2 Days=2818 -- 2740+52+26 ->3D=4188  in Alpari in others 1 day=1380
+        df = self._Mt5.copy_rates_from_pos(self.symbol, self.time_frame, start_pos,
+                                           count)  # 2 Days=2818 -- 2740+52+26 ->3D=4188  in Alpari in others 1 day=1380
         df = pd.DataFrame(df)
         # convert time in seconds into the datetime format
         df['time'] = pd.to_datetime(df['time'], unit='s')
@@ -107,7 +106,7 @@ class MetaTrader:
     def _get_data_type1_changed(self, dataframe_type1_raw):
         df = dataframe_type1_raw.copy()
         ##########
-        point = self.Mt5.symbol_info(self.symbol).point
+        point = self._Mt5.symbol_info(self.symbol).point
 
         def dest(num1, num2):
             return (num1 - num2) / point
@@ -142,7 +141,7 @@ class MetaTrader:
         df = self._get_data_type1(df_raw)
         self.df_last_candle_type1 = df.copy()
         ##########
-        point = self.Mt5.symbol_info(self.symbol).point
+        point = self._Mt5.symbol_info(self.symbol).point
 
         def dest(num1, num2):
             return (num1 - num2) / point
@@ -172,27 +171,27 @@ class MetaTrader:
     ####################################################################################################################
     def _str_to_timeframe(self, argument="M1"):
         switcher = {
-            "M1": self.Mt5.TIMEFRAME_M1,
-            "M2": self.Mt5.TIMEFRAME_M2,
-            "M3": self.Mt5.TIMEFRAME_M3,
-            "M4": self.Mt5.TIMEFRAME_M4,
-            "M5": self.Mt5.TIMEFRAME_M5,
-            "M6": self.Mt5.TIMEFRAME_M6,
-            "M10": self.Mt5.TIMEFRAME_M10,
-            "M12": self.Mt5.TIMEFRAME_M12,
-            "M15": self.Mt5.TIMEFRAME_M15,
-            "M20": self.Mt5.TIMEFRAME_M20,
-            "M30": self.Mt5.TIMEFRAME_M30,
-            "H1": self.Mt5.TIMEFRAME_H1,
-            "H2": self.Mt5.TIMEFRAME_H2,
-            "H3": self.Mt5.TIMEFRAME_H3,
-            "H4": self.Mt5.TIMEFRAME_H4,
-            "H6": self.Mt5.TIMEFRAME_H6,
-            "H8": self.Mt5.TIMEFRAME_H8,
-            "H12": self.Mt5.TIMEFRAME_H12,
-            "D": self.Mt5.TIMEFRAME_D1,
-            "W": self.Mt5.TIMEFRAME_W1,
-            "MN": self.Mt5.TIMEFRAME_MN1,
+            "M1": self._Mt5.TIMEFRAME_M1,
+            "M2": self._Mt5.TIMEFRAME_M2,
+            "M3": self._Mt5.TIMEFRAME_M3,
+            "M4": self._Mt5.TIMEFRAME_M4,
+            "M5": self._Mt5.TIMEFRAME_M5,
+            "M6": self._Mt5.TIMEFRAME_M6,
+            "M10": self._Mt5.TIMEFRAME_M10,
+            "M12": self._Mt5.TIMEFRAME_M12,
+            "M15": self._Mt5.TIMEFRAME_M15,
+            "M20": self._Mt5.TIMEFRAME_M20,
+            "M30": self._Mt5.TIMEFRAME_M30,
+            "H1": self._Mt5.TIMEFRAME_H1,
+            "H2": self._Mt5.TIMEFRAME_H2,
+            "H3": self._Mt5.TIMEFRAME_H3,
+            "H4": self._Mt5.TIMEFRAME_H4,
+            "H6": self._Mt5.TIMEFRAME_H6,
+            "H8": self._Mt5.TIMEFRAME_H8,
+            "H12": self._Mt5.TIMEFRAME_H12,
+            "D": self._Mt5.TIMEFRAME_D1,
+            "W": self._Mt5.TIMEFRAME_W1,
+            "MN": self._Mt5.TIMEFRAME_MN1,
         }
         return switcher.get(argument, False)
 
