@@ -12,6 +12,7 @@ class TradeOnMeta:
     deviation = 20
     magic = int(12345)
     comment = str("Python Trade")
+    group = "*"
     _mt5 = Mt5
     _action = Mt5.TRADE_ACTION_DEAL
     _type_time = Mt5.ORDER_TIME_GTC
@@ -100,11 +101,7 @@ class TradeOnMeta:
         return find
 
     def _positions_get(self) -> pd.DataFrame():
-        if self.symbol is None:
-            res = self._mt5.positions_get()
-        else:
-            res = self._mt5.positions_get(symbol=self.symbol)
-
+        res = self._mt5.positions_get(group=self.group)
         if res is not None and res != ():
             df = pd.DataFrame(list(res), columns=res[0]._asdict().keys())
             df['time'] = pd.to_datetime(df['time'], unit='s')
@@ -167,6 +164,8 @@ class TradeOnMeta:
         ex:
         12345678
         ...
+
+        Note : None=All Symbols
         """
         open_position = self._positions_get()
         open_position = open_position[open_position['ticket'] == deal_id].reset_index(drop=True)
@@ -188,15 +187,21 @@ class TradeOnMeta:
         self._request = dict(self)
         return self._send_order_request()
 
-    def close_sells(self, symbol=None) -> bool:
+    def close_sells(self, group=None) -> bool:
         """
         Enter a string group
         ex:
         'XAUUSD'
         'USD'
         ...
+
+        Note : None=All Symbols
         """
-        self.symbol = symbol
+        if group is None:
+            group = "*"
+        else:
+            group = "*" + group + "*"
+        self.group = group
         open_positions = self._positions_get()
         err = False
         for pos in range(0, len(open_positions)):
@@ -215,15 +220,21 @@ class TradeOnMeta:
                 err = True
         return not err
 
-    def close_buys(self, symbol=None) -> bool:
+    def close_buys(self, group=None) -> bool:
         """
         Enter a string group
         ex:
         'XAUUSD'
         'USD'
         ...
+
+        Note : None=All Symbols
         """
-        self.symbol = symbol
+        if group is None:
+            group = "*"
+        else:
+            group = "*" + group + "*"
+        self.group = group
         open_positions = self._positions_get()
         err = False
         for pos in range(0, len(open_positions)):
@@ -242,15 +253,21 @@ class TradeOnMeta:
                 err = True
         return not err
 
-    def close_all(self, symbol=None) -> bool:
+    def close_all(self, group=None) -> bool:
         """
         Enter a string group
         ex:
         'XAUUSD'
         'USD'
         ...
+
+        Note : None=All Symbols
         """
-        self.symbol = symbol
+        if group is None:
+            group = "*"
+        else:
+            group = "*" + group + "*"
+        self.group = group
         open_positions = self._positions_get()
         err = False
         for pos in range(0, len(open_positions)):
@@ -279,6 +296,8 @@ class TradeOnMeta:
         'XAUUSD'
         'USD'
         ...
+
+        Note : None=All Symbols
         """
         if group is None:
             group = "*"
@@ -295,6 +314,8 @@ class TradeOnMeta:
             df['type'] = df['type'].apply(lambda num: 'Buy' if int(num) == self._mt5.ORDER_TYPE_BUY else 'Sell')
             df.drop(['time_update', 'time_msc', 'time_update_msc', 'external_id'], axis=1, inplace=True)
             return df
+        else:
+            return pd.DataFrame()  # returned Empty df
 
     def positions_total_buy(self, group=None):
         """
@@ -303,6 +324,8 @@ class TradeOnMeta:
         'XAUUSD'
         'USD'
         ...
+
+        Note : None=All Symbols
         """
         if group is None:
             group = "*"
@@ -320,6 +343,8 @@ class TradeOnMeta:
             df['time'] = pd.to_datetime(df['time'], unit='s')
             df.drop(['time_update', 'time_msc', 'time_update_msc', 'external_id'], axis=1, inplace=True)
             return df
+        else:
+            return pd.DataFrame()  # returned Empty df
 
     def positions_total_sell(self, group=None):
         """
@@ -328,6 +353,8 @@ class TradeOnMeta:
         'XAUUSD'
         'USD'
         ...
+
+        Note : None=All Symbols
         """
         if group is None:
             group = "*"
@@ -345,3 +372,5 @@ class TradeOnMeta:
             df['time'] = pd.to_datetime(df['time'], unit='s')
             df.drop(['time_update', 'time_msc', 'time_update_msc', 'external_id'], axis=1, inplace=True)
             return df
+        else:
+            return pd.DataFrame()  # returned Empty df
