@@ -121,7 +121,7 @@ class TradeOnMeta:
             print("Done.\nTicket={}, volume={}, price={}, symbol={}".format(result.order, result.volume,
                                                                             result.request.price,
                                                                             result.request.symbol))
-            return True
+            return result
         else:
             print("ERR : ", result)
             return False
