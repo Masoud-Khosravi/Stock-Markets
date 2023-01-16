@@ -114,14 +114,14 @@ MT.close_sells()# Close All sell position from all symbols
 <br/>
 
 ## Other Repositories:
-[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=masoud-khosravi&repo=SQL-Python)](https://github.com/Masoud-Khosravi/SQL-Python)
-[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=masoud-khosravi&repo=Tensorflow-Covid-19)](https://github.com/Masoud-Khosravi/Tensorflow-Covid-19)
+[![Readme Card](https://github-readme-stats-git-masterrstaa-rickstaa.vercel.app/api/pin/?username=masoud-khosravi&repo=SQL-Python)](https://github.com/Masoud-Khosravi/SQL-Python)
+[![Readme Card](https://github-readme-stats-git-masterrstaa-rickstaa.vercel.app/api/pin/?username=masoud-khosravi&repo=Tensorflow-Covid-19)](https://github.com/Masoud-Khosravi/Tensorflow-Covid-19)
 
-[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=masoud-khosravi&repo=Machine-Learning)](https://github.com/Masoud-Khosravi/Machine-Learning)
-[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=masoud-khosravi&repo=Stock-Markets)](https://github.com/Masoud-Khosravi/Stock-Markets)
+[![Readme Card](https://github-readme-stats-git-masterrstaa-rickstaa.vercel.app/api/pin/?username=masoud-khosravi&repo=Machine-Learning)](https://github.com/Masoud-Khosravi/Machine-Learning)
+[![Readme Card](https://github-readme-stats-git-masterrstaa-rickstaa.vercel.app/api/pin/?username=masoud-khosravi&repo=Stock-Markets)](https://github.com/Masoud-Khosravi/Stock-Markets)
 
-[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=masoud-khosravi&repo=Sqlite)](https://github.com/Masoud-Khosravi/Sqlite)
-[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=masoud-khosravi&repo=Docker)](https://github.com/Masoud-Khosravi/Docker)
+[![Readme Card](https://github-readme-stats-git-masterrstaa-rickstaa.vercel.app/api/pin/?username=masoud-khosravi&repo=Sqlite)](https://github.com/Masoud-Khosravi/Sqlite)
+[![Readme Card](https://github-readme-stats-git-masterrstaa-rickstaa.vercel.app/api/pin/?username=masoud-khosravi&repo=Docker)](https://github.com/Masoud-Khosravi/Docker)
 
 <br/>
 <br/>
